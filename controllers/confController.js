@@ -14,15 +14,20 @@ exports.sendActivationLink = async (req, res) => {
   const hashedToken = hashToken(activationToken);
 
   try {
+    const usersCollection = collection(db, 'users');
+    const userQuery = query(usersCollection, where('email', '==', email));
+    const querySnapshot = await getDocs(userQuery);
 
-    const userRef = doc(db, 'users', email);
-    const userSnapshot = await getDoc(userRef);
-
-    if (!userSnapshot.exists()) {
- 
-      await setDoc(userRef, { email, status: 'inactive' });
+    if (querySnapshot.empty) {
+     
+      const userRef = doc(db, 'users', email);
+      await setDoc(userRef, { email, isVerified: false });
+    } else {
+      
+      const userDoc = querySnapshot.docs[0];
+      const userRef = userDoc.ref;
+      await setDoc(userRef, { isVerified: false }, { merge: true }); 
     }
-
 
     const tokenRef = doc(db, 'tokens', hashedToken);
     await setDoc(tokenRef, {
@@ -68,8 +73,17 @@ exports.activateAccount = async (req, res) => {
       return res.status(400).json({ message: 'Token expired' });
     }
 
-    const userRef = doc(db, 'users', email);
-    await setDoc(userRef, { status: 'active' }, { merge: true });
+    const usersCollection = collection(db, 'users');
+    const userQuery = query(usersCollection, where('email', '==', email));
+    const querySnapshot = await getDocs(userQuery);
+
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      const userRef = userDoc.ref;
+      await setDoc(userRef, { isVerified: true }, { merge: true }); // Оновлюємо на true
+    } else {
+      return res.status(400).json({ message: 'User not found' });
+    }
 
     await deleteDoc(tokenRef);
 
