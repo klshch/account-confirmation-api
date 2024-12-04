@@ -1,29 +1,40 @@
-const { getFirestore, collection, addDoc, getDoc, query, where, updateDoc, doc } = require('firebase/firestore');
-const db = require('../config/db'); // Імпортуємо Firestore
+const { getFirestore, collection, doc, setDoc, getDocs, query, where, updateDoc } = require('firebase/firestore');
+const bcrypt = require('bcryptjs');
+const db = require('../config/db');
 
 const User = {
-  create: async (email) => {
+  create: async (email, name, password) => {
     try {
-      const usersCollection = collection(db, 'users'); 
-      const docRef = await addDoc(usersCollection, {
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const usersCollection = collection(db, 'users');
+      const userDocRef = doc(usersCollection); 
+      const id = userDocRef.id;
+
+      await setDoc(userDocRef, {
+        id, 
         email,
-        isVerified: false, 
+        name,
+        passwordHash,
+        isVerified: false,
       });
-      console.log('User created with ID:', docRef.id);
-      return docRef.id;
+
+      console.log('User created with ID:', id);
+      return id;
     } catch (error) {
       console.error('Error creating user:', error.message);
       throw error;
     }
   },
-  updateStatus: async (email, isVerified) => { 
+
+  updateStatus: async (email, isVerified) => {
     try {
       const usersCollection = collection(db, 'users');
       const userQuery = query(usersCollection, where('email', '==', email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
-        await updateDoc(userDoc.ref, { isVerified }); 
+        await updateDoc(userDoc.ref, { isVerified });
         console.log('User verification status updated');
         return true;
       }
@@ -33,6 +44,7 @@ const User = {
       throw error;
     }
   },
+
   findByEmail: async (email) => {
     try {
       const usersCollection = collection(db, 'users');
@@ -44,6 +56,20 @@ const User = {
       return null;
     } catch (error) {
       console.error('Error finding user:', error.message);
+      throw error;
+    }
+  },
+
+  validatePassword: async (email, password) => {
+    try {
+      const user = await User.findByEmail(email);
+      if (user) {
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        return isValid;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error validating password:', error.message);
       throw error;
     }
   },
