@@ -125,8 +125,8 @@ Response codes:
 http://localhost:3000/reset-password?token=
 
 Request Parameters
-	-	token (string, required): An activation token that was sent to the user via email.
-	-	newPassword (string, required): New users password.
+    - token (string, required): An activation token that was sent to the user via email.
+    - newPassword (string, required): New users password.
 
  Example:
 
