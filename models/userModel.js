@@ -4,10 +4,10 @@ const db = require('../config/db'); // Імпортуємо Firestore
 const User = {
   create: async (email) => {
     try {
-      const usersCollection = collection(db, 'users'); // Колекція "users"
+      const usersCollection = collection(db, 'users'); 
       const docRef = await addDoc(usersCollection, {
         email,
-        status: 'inactive',
+        isVerified: false, 
       });
       console.log('User created with ID:', docRef.id);
       return docRef.id;
@@ -16,20 +16,20 @@ const User = {
       throw error;
     }
   },
-  updateStatus: async (email, status) => {
+  updateStatus: async (email, isVerified) => { 
     try {
       const usersCollection = collection(db, 'users');
       const userQuery = query(usersCollection, where('email', '==', email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
-        await updateDoc(userDoc.ref, { status });
-        console.log('User status updated');
+        await updateDoc(userDoc.ref, { isVerified }); 
+        console.log('User verification status updated');
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error updating user status:', error.message);
+      console.error('Error updating user verification status:', error.message);
       throw error;
     }
   },
