@@ -32,7 +32,7 @@ exports.sendPasswordResetLink = async (req, res) => {
       expires_at: new Date(Date.now() + 1 * 60 * 60 * 1000), 
     });
 
-    const resetLink = `https://secure-project-api.onrender.com/reset-password?token=${resetToken}`;
+    const resetLink = `https://10.0.2.2/reset-password?token=${resetToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
