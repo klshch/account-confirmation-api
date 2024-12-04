@@ -33,10 +33,10 @@ exports.sendActivationLink = async (req, res) => {
     await setDoc(tokenRef, {
       email,
       created_at: new Date(),
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // Додаємо 1 день
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), 
     });
 
-    const activationLink = `http://localhost:3000/activate-account?token=${activationToken}`;
+    const activationLink = `https://secure-project-api.onrender.com/activate-account?token=${activationToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -80,7 +80,7 @@ exports.activateAccount = async (req, res) => {
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0];
       const userRef = userDoc.ref;
-      await setDoc(userRef, { isVerified: true }, { merge: true }); // Оновлюємо на true
+      await setDoc(userRef, { isVerified: true }, { merge: true });
     } else {
       return res.status(400).json({ message: 'User not found' });
     }
